@@ -1,0 +1,19 @@
+{% extends 'passkeeper/base.html' %}
+{% block content %}
+ <h1>Keekeeper</h1>
+ <p>            
+        {% if True %}
+            <p>Hello there.</p>
+        {% endif %}
+        <table>
+            <tr><th>Password Vault</th></tr>
+            {% for category in  categories %}
+            <tr><td><a href="/category/{{category.id}}">{{category.itemcategory}}</a></td></tr>
+            {% endfor %}
+        </table>
+
+
+</p>
+{% endblock %}
+
+

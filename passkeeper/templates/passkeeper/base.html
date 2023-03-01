@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html>
- <head>
- <meta name="keywords" content="HTML,Django,Keekeeper">
- </head>
- <body>
- {% block content %}
- {% endblock %}
- </body>
-</html>
+{% include "./header.html" %}
+{% include "./title.html" %}
+
+
+{% block categoryList %}
+<div id="categories_list">
+<table>
+    <tr><th>Password Vault</th></tr>
+    {% for category in  categories_list %}
+    <tr><td><a href="/category/{{category.id}}">{{category.itemcategory}}</a></td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock%}
+
+
+
+<div class="content">
+    {% block content %}Didn't render content{% endblock %}
+</div>
+
+{% include "./footer.html" %}

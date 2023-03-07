@@ -2,21 +2,24 @@
 {% include "./title.html" %}
 
 
-{% block categoryList %}
-<div id="categories_list">
-<table>
-    <tr><th>Password Vault</th></tr>
-    {% for category in  categories_list %}
-    <tr><td><a href="/category/{{category.id}}">{{category.itemcategory}}</a></td></tr>
-    {% endfor %}
-</table>
+<div class="container-fluid">
+    <div class="row">
+
+    {% block categoryList %}
+        <div class="col-sm-2" id="categories_list">
+            <table>
+                <tr><th>Password Vault</th></tr>
+                {% for category in  categories_list %}
+                <tr><td><a href="/category/{{category.id}}">{{category.itemcategory}}</a></td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endblock%}
+
+    <div class="col-sm-10"  class="content">
+        {% block content %} Didn't render content {% endblock %}
+    </div>
+    {% include "./footer.html" %}
+
+    </div>
 </div>
-{% endblock%}
-
-
-
-<div class="content">
-    {% block content %}Didn't render content{% endblock %}
-</div>
-
-{% include "./footer.html" %}

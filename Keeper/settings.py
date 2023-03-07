@@ -37,7 +37,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     #'rest_framework',
-    #'bootstrap4',
+    'bootstrap4',
     'passkeeper.apps.PasskeeperConfig',
     'django.contrib.admin',
     'django.contrib.auth',

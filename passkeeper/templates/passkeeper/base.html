@@ -3,10 +3,30 @@
 
 
 <div class="container-fluid">
-    <div class="row">
+    <div class = "row">
 
-    {% block categoryList %}
-        <div class="col-sm-2" id="categories_list">
+        {% block userAuth %}
+            <div>
+                {% if user.is_authenticated %}
+                <li class="col-0">
+                <table>
+                    <tr><th>User INFO</th></tr>  
+                    <tr><img src="../static/media/user_placeholder.jpg" alt="Avatar" width="50px" height="50px"> </tr>
+                    <tr><td>Username:</td><td>{{ user.username }}</td></tr> 
+                    <tr><td>Email:</td><td>{{ user.email }}</td></tr> 
+                    <!--<tr><td>Company: </td><td> {{ appuser.profile.organisation }}</td></tr> -->
+                </table>  
+                </li>
+                {% endif %}
+            </div>
+            {% endblock%}
+    </div>       
+    </br>
+
+    <div class="row">  
+
+    {% block categoryList %}        
+        <div class="col-sm-2" id="categories_list">       
             <table>
                 <tr><th>Password Vault</th></tr>
                 {% for category in  categories_list %}

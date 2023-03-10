@@ -7,8 +7,13 @@
     
     <h2>{{category.itemcategory}}</h2>
     <h4>Add password Item</h4>
-    <a href="/create_password/{{category.id}}">Add</a>
+    <a href="/create_password/{{category.id}}/{{user.id}}">Add</a>
     <br />
+    
+    <h4>Add NEW Password Item</h4>
+    <a href="/create_new_password/{{category.id}}/{{user.id}}">Add_Password</a>
+    <br>
+
     <table> 
         <tr><th>Title</th><th>Username</th><th>Password</th><th>Url</th><th>Comment</th><th>#</th><th>#</th></tr>
         <!-- declaring variable passitem in django DTL which is equal to every item in array variable passitems that has passed from view category-->

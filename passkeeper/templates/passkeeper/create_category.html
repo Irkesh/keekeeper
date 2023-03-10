@@ -1,0 +1,17 @@
+{% extends "passkeeper/base.html" %}
+{% load bootstrap4 %}
+
+
+{% block content %}
+<div id="content">
+  <h4>Add New Category</h4>
+  <form action="/create_category/{{user.id}}"  method="POST" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="user" value="{{ user.id}}">
+    {% bootstrap_form form %}
+    {% buttons %}
+      <button type="submit" class="btn btn-primary">Create</button>
+    {% endbuttons %}
+  </form>
+</div>
+{% endblock %}

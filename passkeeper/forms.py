@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
-
     class Meta:
         model = User
         fields = ('username', 'email', 'password')
@@ -25,3 +24,8 @@ class PasswordForm(forms.Form):
     #own = models.CharField(max_length=2, default="Me")
     comment = forms.CharField(label='Note', max_length=256)
     
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['itemcategory',]

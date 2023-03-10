@@ -6,6 +6,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.hashers import make_password, check_password
 from cryptography.fernet import Fernet
 from passkeeper.models import AppUser
+from bootstrap_modal_forms.forms import *
 # Create your views here.
 from .models import *
 from .forms import *
@@ -13,10 +14,18 @@ from .forms import *
 
 
 def index(request):
-    categories_list = Category.objects.all()
-    category = Category.objects.get(pk=5)
-    passitems = PasItem.objects.all().filter(pass_category__exact=1).reverse()
-    return render(request, 'passkeeper/index.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
+    if request.user.is_authenticated:
+        # User is authenticated, so do something for authenticated users
+        user = request.user.id
+        categories_list = Category.objects.filter(user_id__exact=user).reverse()
+        category = categories_list[0]
+        passitems = PasItem.objects.all().filter(pass_category__exact=category.id).reverse()
+        return render(request, 'passkeeper/index.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
+    else:
+        # User is not authenticated, so do something for anonymous users
+        context = {}
+        return render(request, 'passkeeper/login.html', context)
+
 
 
 
@@ -44,6 +53,24 @@ def edit(request, pk, id):
     passitems = PasItem.objects.filter(pass_category__exact=id)
     return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
 
+#create new category
+def create_category(request, user):
+    
+    #creating a form
+    form = CategoryForm()
+    cat_user = User.objects.get(pk=user)
+    if request.method == 'POST':
+        #extracting hidden value
+        user = request.POST.get('user')
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            new_category = Category()                        
+            new_category.itemcategory = form.cleaned_data['itemcategory']    #title - how user decide to call it
+            new_category.user = cat_user  
+            new_category.save()
+            return HttpResponseRedirect('/')
+    return render(request, 'passkeeper/create_category.html', {'form': form})
+
 
 def create_password(request, id, user):
     categories_list = Category.objects.all()
@@ -54,15 +81,7 @@ def create_password(request, id, user):
         passitems = PasItem.objects.filter(pass_category__exact=id)
         # Retrieve a User object by username or other identifier
         user = AppUser.objects.get(user_id=user)
-        # Access the email address of the user
-        #user_email = user.email
         user_key = user.salt
-        # Generate a salt for the password hash using the user's email address
-        #salt = bytes(user_email, 'utf-8')
-        #print(user_salt)
-        #salt = '\xfb|\xe8\xe0\xe5\x9d\x11\xf5\xbc 8o\xbe<\xd9\x92'
-
-        # Generate a secret key for encryption/decryption
         #key = Fernet.generate_key()
         print("Key: ")
         print(user_key)
@@ -94,8 +113,8 @@ def create_password(request, id, user):
             decoded_password = cipher_suite.decrypt(encoded_password.encode()).decode()
             print("Decoded password: "+ decoded_password)
                      
-            
-            return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
+            return HttpResponseRedirect('/')
+            #return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
     else:    
         form = PasswordForm()    
         return render(request, 'passkeeper/create_password.html', {'form': form, 'categories_list': categories_list, 'category': category})
@@ -180,10 +199,11 @@ def register(request):
             profile.user = user
 
             if 'organisation' in user_form.cleaned_data:
-                profile.organisation = request.DATA['organisation']
-            
+                profile.organisation = request.DATA['organisation']            
             profile.salt = Fernet.generate_key()
             profile.save()
+
+
             registered = True
         else:
             print(user_form.errors, profile_form.errors)

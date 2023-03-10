@@ -46,10 +46,19 @@ body {
     width: 100%;
     background-color: #285db9;
    }
+
+   #user-auth{
+    width: 100%;
+    background-color: #081866;
+    color: #ffffff;
+    padding: 2px;
+   }
+
    a { text-decoration: none;
     color: #2862b9 }
 
     a:hover {
+        text-decoration: none;
         color: #3bcacf
     }    
     .nav_link {

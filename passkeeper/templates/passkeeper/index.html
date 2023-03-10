@@ -6,20 +6,23 @@
 <div id="content">
     
     <h2>{{category.itemcategory}}</h2>
-    <h4>Add password Item</h4>
-    <a href="/create_password/{{category.id}}/{{user.id}}">Add</a>
-    <br />
     
+    
+    <!--
+    <h4>Add Password Item</h4>     
+    <a href="/create_password/{{category.id}}/{{user.id}}">Add Password</a>    
+    <br />
     <h4>Add NEW Password Item</h4>
     <a href="/create_new_password/{{category.id}}/{{user.id}}">Add_Password</a>
     <br>
-
-    <table> 
+    -->
+    <table class="table table-striped table-bordered"> 
+        <a href="/create_password/{{category.id}}/{{user.id}}"><button type="button" class="btn btn-primary" > Add Password </button> </a>
         <tr><th>Title</th><th>Username</th><th>Password</th><th>Url</th><th>Comment</th><th>#</th><th>#</th></tr>
         <!-- declaring variable passitem in django DTL which is equal to every item in array variable passitems that has passed from view category-->
         <!-- it only exists withon a content of for block-->
         {% for passitem in passitems %}
-        <tr><td>{{passitem.password_id}}</td><td>{{passitem.username}}</td><td>{{passitem.password}}</td><td>{{passitem.url}}</td><td>{{passitem.comment}}</td><td><a href="/edit/{{passitem.pk}}/{{category.id}}">Edit</a></td><td><a href="/delete/{{passitem.pk}}/{{category.id}}">Delete</a></td></tr>
+        <tr><td>{{passitem.password_id}}</td><td>{{passitem.username}}</td><td>*************</td><td>{{passitem.url}}</td><td>{{passitem.comment}}</td><td><a href="/edit/{{passitem.pk}}/{{category.id}}">Edit</a></td><td><a href="/delete/{{passitem.pk}}/{{category.id}}">Delete</a></td></tr>
         {% endfor %}
     </table>
    

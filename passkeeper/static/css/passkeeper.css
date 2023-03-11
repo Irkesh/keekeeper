@@ -83,10 +83,15 @@ body {
     #categories_list{
         padding-left: 10px;
         padding-right: 20px;
+        float: left;       
+    }
+
+    #user_info{
+        padding-left: 10px;
+        padding-right: 10px;
         float: left;
        
     }
-
 
     #footer{
         padding-left: 10px;    

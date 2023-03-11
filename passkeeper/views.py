@@ -31,14 +31,15 @@ def index(request):
 
 #pk - primary key for category
 def category(request, pk):
-    categories_list = Category.objects.all()
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
     category = Category.objects.get(pk=pk)
-    passitems = PasItem.objects.filter(pass_category__exact=category.id).reverse()
+    passitems = PasItem.objects.all().filter(pass_category__exact=category.id).reverse()
     return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
 
 #pk - primary key for password
 #id - primary key for category
-def delete(request, pk, id):
+def delete_password(request, pk, id):
     categories_list = Category.objects.all()
     PasItem.objects.filter(pk=pk).delete()    
     passitems = PasItem.objects.filter(pass_category__exact=id).reverse()
@@ -46,7 +47,7 @@ def delete(request, pk, id):
 
 #pk - primary key for password
 #id - primary key for category
-def edit(request, pk, id):
+def edit_password(request, pk, id):
     categories_list = Category.objects.all()
     #we do nothing with edit for now
     category = Category.objects.get(pk=id)
@@ -194,15 +195,46 @@ def register(request):
         if user_form.is_valid() and profile_form.is_valid():
             user = user_form.save()
             user.set_password(user.password)
+            # Save the user to the database
             user.save()
+            # Get the user's primary key (pk)
+            user_pk = user.pk
             profile = profile_form.save(commit=False)
             profile.user = user
 
             if 'organisation' in user_form.cleaned_data:
-                profile.organisation = request.DATA['organisation']            
-            profile.salt = Fernet.generate_key()
-            profile.save()
-
+                profile.organisation = request.DATA['organisation']      
+            ##generating account encryption key         
+            user_key = Fernet.generate_key()
+            profile.salt = user_key
+            ###here is the process on coping default example passwords from template tables 
+            cipher_suite = Fernet(user_key)
+            profile.save()            
+            passItemTemp_list = PasItemTemplate.objects.all()
+            catTemp_list = CategoryTemplate.objects.all()
+            #iterating through categories
+            for i in range(len(catTemp_list)):
+                category_item =Category()
+                category_item.itemcategory = catTemp_list[i].itemcategory_temp
+                category_item.user = user     
+                category_item.save()   
+            
+            #extracting new category list
+            catNew_list = Category.objects.filter(user_id__exact=user_pk)
+            #iterating trough new password items
+            for i in range(len(passItemTemp_list)):
+                password_item = PasItem()
+                password_item.password_id = passItemTemp_list[i].password_id_temp
+                password_item.username = passItemTemp_list[i].username_temp
+                #encoded_password = cipher_suite.encrypt(tmppass.encode()).decode()
+                #print("Encoded password: "+ encoded_password)
+                password_item.password = cipher_suite.encrypt(passItemTemp_list[i].password_temp.encode()).decode()
+                password_item.password = passItemTemp_list[i].password_temp
+                password_item.url = passItemTemp_list[i].url_temp
+                password_item.comment = passItemTemp_list[i].comment_temp
+                password_item.pass_category = catNew_list[i]     
+                password_item.save()        
+            
 
             registered = True
         else:

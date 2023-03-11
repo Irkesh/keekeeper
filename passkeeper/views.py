@@ -40,7 +40,8 @@ def category(request, pk):
 #pk - primary key for password
 #id - primary key for category
 def delete_password(request, pk, id):
-    categories_list = Category.objects.all()
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
     PasItem.objects.filter(pk=pk).delete()    
     passitems = PasItem.objects.filter(pass_category__exact=id).reverse()
     return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
@@ -48,7 +49,8 @@ def delete_password(request, pk, id):
 #pk - primary key for password
 #id - primary key for category
 def edit_password(request, pk, id):
-    categories_list = Category.objects.all()
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
     #we do nothing with edit for now
     category = Category.objects.get(pk=id)
     passitems = PasItem.objects.filter(pass_category__exact=id)
@@ -56,7 +58,8 @@ def edit_password(request, pk, id):
 
 #create new category
 def create_category(request, user):
-    
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
     #creating a form
     form = CategoryForm()
     cat_user = User.objects.get(pk=user)
@@ -72,11 +75,11 @@ def create_category(request, user):
             return HttpResponseRedirect('/')
     return render(request, 'passkeeper/create_category.html', {'form': form})
 
-
+#here id - is a Category pk
 def create_password(request, id, user):
-    categories_list = Category.objects.all()
-    category = Category.objects.get(pk=id)
-    
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
+    category = Category.objects.get(pk=id)    
     if request.method == 'POST':
         form = PasswordForm(request.POST)
         passitems = PasItem.objects.filter(pass_category__exact=id)

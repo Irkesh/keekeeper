@@ -64,16 +64,40 @@ def edit_password(request, pk, id):
 
 #pk - primary key for password
 #id - primary key for category
-def edit_password_item(request, pk, id):
-    user = request.user.id       
-    categories_list = Category.objects.filter(user_id__exact=user).reverse()
-    category = Category.objects.get(pk=id)    
+def edit_password_item(request, pk, cat_id):
+    userid = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=userid).reverse()
+    category = Category.objects.get(pk=cat_id)    
+    passwordItem = PasItem.objects.get(pk=pk)
+    enc_password = passwordItem.password
+    user = AppUser.objects.get(user_id=userid)
+    user_key = user.salt
+    cipher_suite = Fernet(user_key)
+    decoded_password = cipher_suite.decrypt(enc_password.encode()).decode()
+    passwordItem.password = decoded_password
+    form = PasswordEditForm(instance = passwordItem)  
     if request.method == 'POST':
-        form = PasswordForm(request.POST)        
-        passitems = PasItem.objects.filter(pass_category__exact=id)
-
-        form = PasswordForm()    
-    return render(request, 'passkeeper/create_password.html', {'form': form, 'categories_list': categories_list, 'category': category})
+        form = PasswordEditForm(request.POST, instance = passwordItem)        
+        passitems = PasItem.objects.filter(pass_category__exact=cat_id)
+        if form.is_valid():
+            password = PasItem.objects.get(pk=pk)                     
+            password.password_id = form.cleaned_data['password_id']               #title - how user decide to call it
+            password.username = form.cleaned_data['username']                     #username to update
+            tmppass=form.cleaned_data['password']                                 #password to update
+            encoded_password = cipher_suite.encrypt(tmppass.encode()).decode()
+            #print("Encoded password: "+ encoded_password)
+            password.password = encoded_password
+            password.url = form.cleaned_data['url'] 
+            #own = models.CharField(max_length=2, default="Me")
+            password.comment = form.cleaned_data['comment'] 
+            #password.pass_category = category
+            password.save()
+            return HttpResponseRedirect('/')
+            # save method updates existing instance in the database.
+            #form.save()
+            #return redirect('passkeeper/edit_password.html', pk=pk)
+    form = PasswordEditForm(instance = passwordItem)    
+    return render(request, 'passkeeper/edit_password.html', {'form': form, 'categories_list': categories_list, 'category': category})
 
 
 
@@ -112,9 +136,7 @@ def create_password(request, id, user):
             password.comment = form.cleaned_data['comment'] 
             password.pass_category = category
             password.save()
-            decoded_password = cipher_suite.decrypt(encoded_password.encode()).decode()
-            print("Decoded password: "+ decoded_password)
-                     
+
             return HttpResponseRedirect('/')
             #return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
     else:    

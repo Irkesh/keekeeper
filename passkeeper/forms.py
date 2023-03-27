@@ -21,9 +21,27 @@ class PasswordForm(forms.Form):
     username = forms.CharField(label='Username', max_length=256)     #username to store
     password = forms.CharField(label='Password', max_length=256)     #password to store
     url = forms.CharField(label='Url', max_length=256)
-    #own = models.CharField(max_length=2, default="Me")
     comment = forms.CharField(label='Note', max_length=256)
     
+class PasswordEditForm(forms.ModelForm):
+    class Meta:
+        model = PasItem
+        fields = ['password_id', 'username', 'password', 'url', 'comment']
+        labels = {
+            'password_id': 'Title',
+            'username': 'Username',
+            'password': 'Password',
+            'url': 'Url',
+            'comment': 'Note',
+        }
+        widgets = {
+            'password_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'password': forms.TextInput(attrs={'class': 'form-control'}),
+            'url': forms.TextInput(attrs={'class': 'form-control'}),
+            'comment': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 
 class CategoryForm(forms.ModelForm):
     class Meta:

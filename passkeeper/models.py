@@ -38,6 +38,8 @@ class PasItem(models.Model):
     def __str__(self):
         return self.password_id
 
+
+
 class PasItemTemplate(models.Model):    
     password_id_temp = models.CharField(max_length=256, null=False, blank=False)  #title - how user decide to call it
     username_temp = models.CharField(max_length=256, null=False, blank=False)     #username to store

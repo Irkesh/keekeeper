@@ -6,10 +6,14 @@ from django.contrib.auth import logout
 from django.contrib.auth.hashers import make_password, check_password
 from cryptography.fernet import Fernet
 from passkeeper.models import AppUser
+from django.http import JsonResponse
 from bootstrap_modal_forms.forms import *
 # Create your views here.
 from .models import *
 from .forms import *
+
+
+
 
 
 
@@ -26,7 +30,9 @@ def index(request):
         context = {}
         return render(request, 'passkeeper/login.html', context)
 
-
+def getuserpassword(request):
+    content = {"content": "This is user's password."}
+    return render(request, 'passkeeper/passwords_table.html', content)
 
 
 #pk - primary key for category
@@ -56,24 +62,20 @@ def edit_password(request, pk, id):
     passitems = PasItem.objects.filter(pass_category__exact=id)
     return render(request, 'passkeeper/passwords_table.html',  {'categories_list': categories_list, 'category': category, 'passitems': passitems})
 
-#create new category
-def create_category(request, user):
+#pk - primary key for password
+#id - primary key for category
+def edit_password_item(request, pk, id):
     user = request.user.id       
     categories_list = Category.objects.filter(user_id__exact=user).reverse()
-    #creating a form
-    form = CategoryForm()
-    cat_user = User.objects.get(pk=user)
+    category = Category.objects.get(pk=id)    
     if request.method == 'POST':
-        #extracting hidden value
-        user = request.POST.get('user')
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            new_category = Category()                        
-            new_category.itemcategory = form.cleaned_data['itemcategory']    #title - how user decide to call it
-            new_category.user = cat_user  
-            new_category.save()
-            return HttpResponseRedirect('/')
-    return render(request, 'passkeeper/create_category.html', {'form': form})
+        form = PasswordForm(request.POST)        
+        passitems = PasItem.objects.filter(pass_category__exact=id)
+
+        form = PasswordForm()    
+    return render(request, 'passkeeper/create_password.html', {'form': form, 'categories_list': categories_list, 'category': category})
+
+
 
 #here id - is a Category pk
 def create_password(request, id, user):
@@ -102,10 +104,6 @@ def create_password(request, id, user):
             password.username = form.cleaned_data['username']          #username to store
 
             tmppass=form.cleaned_data['password']                      #password to store
-            # Hash the password using PBKDF2 with 10000 iterations and a 256-bit key            
-            #password.password = make_password(tmppass.encode('utf-8'), salt=salt, hasher='pbkdf2_sha256')
-            #password.password = make_password(tmppass, salt=salt, hasher='pbkdf2_sha256')
-
             encoded_password = cipher_suite.encrypt(tmppass.encode()).decode()
             print("Encoded password: "+ encoded_password)
             password.password = encoded_password
@@ -123,6 +121,34 @@ def create_password(request, id, user):
         form = PasswordForm()    
         return render(request, 'passkeeper/create_password.html', {'form': form, 'categories_list': categories_list, 'category': category})
 
+#create new category
+def create_category(request, user):
+    user = request.user.id       
+    categories_list = Category.objects.filter(user_id__exact=user).reverse()
+    #creating a form
+    form = CategoryForm()
+    cat_user = User.objects.get(pk=user)
+    if request.method == 'POST':
+        #extracting hidden value
+        user = request.POST.get('user')
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            new_category = Category()                        
+            new_category.itemcategory = form.cleaned_data['itemcategory']    #title - how user decide to call it
+            new_category.user = cat_user  
+            new_category.save()
+            return HttpResponseRedirect('/')
+    return render(request, 'passkeeper/create_category.html', {'form': form})
+
+def get_user_password(request, enc_password_id, userID):
+    enc_password = PasItem.objects.get(pk=enc_password_id).password
+    user = AppUser.objects.get(user_id=userID)
+    user_key = user.salt
+    cipher_suite = Fernet(user_key)
+    decoded_password = cipher_suite.decrypt(enc_password.encode()).decode()
+    #print("Decoded password: "+ decoded_password)
+    data = {'password': decoded_password}
+    return JsonResponse(data)
 
 
 def create_new_password(request, id, user):
@@ -211,8 +237,8 @@ def register(request):
             user_key = Fernet.generate_key()
             profile.salt = user_key
             ###here is the process on coping default example passwords from template tables 
-            cipher_suite = Fernet(user_key)
-            profile.save()            
+            profile.save()      
+            cipher_suite = Fernet(user_key)      
             passItemTemp_list = PasItemTemplate.objects.all()
             catTemp_list = CategoryTemplate.objects.all()
             #iterating through categories
@@ -224,6 +250,9 @@ def register(request):
             
             #extracting new category list
             catNew_list = Category.objects.filter(user_id__exact=user_pk)
+
+            #user = AppUser.objects.get(user_id=user)
+            #user_key = user.salt
             #iterating trough new password items
             for i in range(len(passItemTemp_list)):
                 password_item = PasItem()
@@ -231,8 +260,9 @@ def register(request):
                 password_item.username = passItemTemp_list[i].username_temp
                 #encoded_password = cipher_suite.encrypt(tmppass.encode()).decode()
                 #print("Encoded password: "+ encoded_password)
-                password_item.password = cipher_suite.encrypt(passItemTemp_list[i].password_temp.encode()).decode()
-                password_item.password = passItemTemp_list[i].password_temp
+                passkey = passItemTemp_list[i].password_temp
+                password_item.password = cipher_suite.encrypt(passkey.encode()).decode()
+                #password_item.password = passItemTemp_list[i].password_temp
                 password_item.url = passItemTemp_list[i].url_temp
                 password_item.comment = passItemTemp_list[i].comment_temp
                 password_item.pass_category = catNew_list[i]     
